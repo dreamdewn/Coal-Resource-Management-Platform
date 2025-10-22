@@ -1,0 +1,1837 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>煤链智调 - 智能污染评估系统</title>
+    <!-- 添加预加载字体策略 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+    />
+    <!-- Bootstrap Icons -->
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
+    />
+    <!-- Toastify CSS -->
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
+    />
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #0f3460 0%, #0066cc 50%, #00ccff 100%);
+            --secondary-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            --accent-gradient: linear-gradient(135deg, #00ffff 0%, #0080ff 100%);
+            --danger-gradient: linear-gradient(135deg, #ff3366 0%, #ff6699 100%);
+            --success-gradient: linear-gradient(135deg, #00ff88 0%, #00cc66 100%);
+            --warning-gradient: linear-gradient(135deg, #ffaa00 0%, #ff6600 100%);
+            --card-shadow: 0 20px 40px rgba(0, 255, 255, 0.1);
+            --card-hover-shadow: 0 30px 60px rgba(0, 255, 255, 0.2);
+            --glow-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            --border-radius: 20px;
+            --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(0, 102, 204, 0.1) 0%, transparent 50%),
+                linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0f3460 100%);
+            min-height: 100vh;
+            margin: 0;
+            color: #ffffff;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* 科技网格背景 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* 浮动科技粒子 */
+        .tech-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #00ffff;
+            border-radius: 50%;
+            animation: float 6s infinite ease-in-out;
+            box-shadow: 0 0 10px #00ffff;
+        }
+
+        @keyframes float {
+            0%, 100% { 
+                transform: translateY(0) translateX(0) scale(1);
+                opacity: 0.5;
+            }
+            50% { 
+                transform: translateY(-100px) translateX(50px) scale(1.2);
+                opacity: 1;
+            }
+        }
+
+        /* 扫描线效果 */
+        @keyframes scan {
+            0% { transform: translateX(-100%); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateX(100vw); opacity: 0; }
+        }
+
+        .scan-line {
+            position: fixed;
+            top: 0;
+            left: -100px;
+            width: 2px;
+            height: 100vh;
+            background: var(--accent-gradient);
+            animation: scan 10s linear infinite;
+            z-index: 1000;
+            pointer-events: none;
+            box-shadow: 0 0 20px #00ffff;
+        }
+
+        .container {
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            position: relative;
+        }
+
+        /* 导航栏样式 */
+        .navbar {
+            background: var(--secondary-gradient) !important;
+            border-radius: var(--border-radius);
+            padding: 1.5rem 2rem;
+            box-shadow: 0 4px 30px rgba(0, 255, 255, 0.2);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .navbar::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent-gradient);
+            animation: pulse-line 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-line {
+            0%, 100% { opacity: 0.5; transform: scaleX(1); }
+            50% { opacity: 1; transform: scaleX(1.02); }
+        }
+
+        .navbar-brand {
+            color: #00ffff !important;
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+        }
+
+        .navbar-brand::before {
+            content: "⚡";
+            font-size: 1.5rem;
+            margin-right: 0.5rem;
+            animation: rotate 4s linear infinite;
+            color: #00ffff;
+            text-shadow: 0 0 20px #00ffff;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .navbar-brand:hover {
+            text-shadow: 0 0 30px #00ffff;
+            transform: scale(1.05);
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 600;
+            transition: var(--transition);
+            padding: 0.75rem 1.5rem !important;
+            border-radius: 15px;
+            margin: 0 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--accent-gradient);
+            transition: left 0.5s;
+            z-index: -1;
+            opacity: 0.2;
+        }
+
+        .nav-link:hover::before, .nav-link.active::before {
+            left: 0;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: #00ffff !important;
+            background: rgba(0, 255, 255, 0.1);
+            transform: translateY(-2px);
+            box-shadow: var(--glow-shadow);
+        }
+
+        /* 主标题 */
+        h1 {
+            text-align: center;
+            margin: 2rem 0;
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            font-size: 2.5rem;
+            color: #00ffff;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+            position: relative;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 4px;
+            background: var(--accent-gradient);
+            border-radius: 2px;
+            animation: expand 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes expand {
+            from { width: 200px; opacity: 0.7; }
+            to { width: 250px; opacity: 1; }
+        }
+
+        /* 卡片样式 */
+        .card {
+            background: rgba(26, 26, 46, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            transition: var(--transition);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: var(--accent-gradient);
+            transition: left 0.8s ease;
+        }
+
+        .card:hover {
+            box-shadow: var(--card-hover-shadow);
+            transform: translateY(-5px);
+            border-color: rgba(0, 255, 255, 0.5);
+        }
+
+        .card:hover::before {
+            left: 0;
+        }
+
+        .card-header {
+            background: var(--secondary-gradient);
+            color: #00ffff;
+            font-weight: 700;
+            border: none;
+            padding: 1.5rem;
+        }
+
+        .card-body {
+            padding: 2rem;
+            background: rgba(15, 52, 96, 0.1);
+        }
+
+        .card-title {
+            font-weight: 700;
+            color: #00ffff;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        /* 表单样式 */
+        .form-control {
+            background: rgba(26, 26, 46, 0.8);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 1rem 1.5rem;
+            transition: var(--transition);
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        .form-control:focus {
+            background: rgba(15, 52, 96, 0.9);
+            border-color: #00ffff;
+            box-shadow: var(--glow-shadow);
+            color: #ffffff;
+        }
+
+        .form-label {
+            color: #00ffff;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .form-text {
+            color: rgba(0, 255, 255, 0.8);
+            font-weight: 500;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            border-radius: 15px;
+            font-weight: 700;
+            padding: 1rem 2rem;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.6s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            border: none;
+            box-shadow: 0 8px 25px rgba(0, 102, 204, 0.4);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: var(--card-hover-shadow);
+            color: #ffffff;
+        }
+
+        /* 图表容器 */
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-top: 20px;
+            background: rgba(10, 10, 10, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: inset 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .chart-image-container {
+            position: relative;
+            background: rgba(10, 10, 10, 0.8);
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            overflow: hidden;
+            margin: 15px 0;
+            text-align: center;
+            box-shadow: var(--card-shadow);
+        }
+
+        .chart-image-container img {
+            max-width: 100%;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .chart-image-container img:hover {
+            transform: scale(1.02);
+        }
+
+        /* 加载动画 */
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            margin: 3rem 0;
+            padding: 3rem;
+            background: rgba(15, 52, 96, 0.3);
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            box-shadow: var(--card-shadow);
+        }
+
+        .spinner-border {
+            width: 4rem;
+            height: 4rem;
+            border-width: 0.4rem;
+            border-color: #00ffff;
+            border-right-color: transparent;
+        }
+
+        .loading-spinner p {
+            margin-top: 1.5rem;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            color: #00ffff;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* 评估结果区域 */
+        .assessment-result {
+            display: none;
+            margin-top: 2rem;
+        }
+
+        .assessment-header {
+            background: rgba(26, 26, 46, 0.9);
+            backdrop-filter: blur(20px);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 2rem;
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            transition: var(--transition);
+        }
+
+        .assessment-header:hover {
+            box-shadow: var(--card-hover-shadow);
+        }
+
+        .pollution-level {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #00ffff;
+        }
+
+        .level-badge {
+            padding: 8px 16px;
+            border-radius: 25px;
+            color: #ffffff;
+            font-weight: 700;
+            box-shadow: var(--glow-shadow);
+            transition: var(--transition);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .level-badge:hover {
+            transform: translateY(-2px) scale(1.05);
+        }
+
+        .level-light {
+            background: var(--success-gradient);
+        }
+        .level-mild {
+            background: var(--warning-gradient);
+        }
+        .level-moderate {
+            background: linear-gradient(135deg, #ff6600 0%, #ff9900 100%);
+        }
+        .level-severe {
+            background: var(--danger-gradient);
+        }
+        .level-extreme {
+            background: linear-gradient(135deg, #6f42c1 0%, #9933ff 100%);
+        }
+
+        /* 风险和影响项目 */
+        .risk-item, .impact-item {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid #ffaa00;
+            padding: 15px 20px;
+            margin: 10px 0;
+            border-radius: 0 15px 15px 0;
+            box-shadow: var(--card-shadow);
+            transition: var(--transition);
+            color: #ffffff;
+        }
+
+        .risk-item:hover, .impact-item:hover {
+            transform: translateX(10px);
+            box-shadow: var(--card-hover-shadow);
+            background: rgba(255, 193, 7, 0.2);
+        }
+
+        .impact-item.ecology {
+            background: rgba(0, 255, 136, 0.1);
+            border-left-color: #00ff88;
+        }
+        .impact-item.water {
+            background: rgba(0, 255, 255, 0.1);
+            border-left-color: #00ffff;
+        }
+        .impact-item.soil {
+            background: rgba(255, 102, 0, 0.1);
+            border-left-color: #ff6600;
+        }
+        .impact-item.health {
+            background: rgba(255, 51, 102, 0.1);
+            border-left-color: #ff3366;
+        }
+
+        /* 选项卡 */
+        .nav-tabs {
+            margin-bottom: 2rem;
+            border-bottom: 2px solid rgba(0, 255, 255, 0.3);
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 600;
+            padding: 15px 20px;
+            margin-right: 5px;
+            border-radius: 15px 15px 0 0;
+            transition: var(--transition);
+            background: transparent;
+        }
+
+        .nav-tabs .nav-link:hover {
+            background: rgba(0, 255, 255, 0.1);
+            color: #00ffff;
+            transform: translateY(-3px);
+        }
+
+        .nav-tabs .nav-link.active {
+            color: #00ffff;
+            background: rgba(0, 255, 255, 0.1);
+            border-bottom: 3px solid #00ffff;
+        }
+
+        /* 建议 */
+        .recommendation {
+            background: rgba(0, 255, 136, 0.1);
+            border-left: 4px solid #00ff88;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            border-radius: 0 15px 15px 0;
+            box-shadow: var(--card-shadow);
+            color: #ffffff;
+            transition: var(--transition);
+        }
+
+        .recommendation:hover {
+            transform: translateX(10px);
+            background: rgba(0, 255, 136, 0.2);
+        }
+
+        /* 历史记录 */
+        .history-record {
+            cursor: pointer;
+            padding: 15px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+            transition: var(--transition);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            background: rgba(26, 26, 46, 0.5);
+        }
+
+        .history-record:hover {
+            background: rgba(0, 255, 255, 0.1);
+            transform: translateY(-2px);
+            box-shadow: var(--glow-shadow);
+        }
+
+        /* 仪表盘 */
+        .gauge-container {
+            position: relative;
+            text-align: center;
+            padding: 2rem;
+            background: rgba(26, 26, 46, 0.9);
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+        }
+
+        .gauge-value {
+            position: absolute;
+            top: 60%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+            font-weight: bold;
+            color: #00ffff;
+            font-family: 'Orbitron', monospace;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .gauge-label {
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+            color: #00ffff;
+            font-family: 'Orbitron', monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* 全屏覆盖层 */
+        .fullscreen-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            display: none;
+        }
+
+        .fullscreen-overlay img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+
+        .fullscreen-overlay .close-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #00ffff;
+            font-size: 3rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .fullscreen-overlay .close-button:hover {
+            color: #ffffff;
+            transform: scale(1.2);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .chart-container {
+                height: 300px;
+            }
+
+            .navbar {
+                padding: 1rem;
+            }
+
+            .card-body {
+                padding: 1.5rem;
+            }
+        }
+
+        /* 页面初始加载效果 */
+        body {
+            opacity: 0;
+            transition: opacity 0.5s ease-in;
+        }
+
+        body.loaded {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- 科技粒子背景 -->
+    <div class="tech-particles"></div>
+    
+    <!-- 扫描线效果 -->
+    <div class="scan-line"></div>
+
+<div class="container">
+    <!-- 顶部导航 -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">矿能云析</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="border-color: #00ffff;">
+                <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="bi bi-cpu"></i> 智能分析
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/pollution">
+                            <i class="bi bi-shield-check"></i> 污染监测
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/resource">
+                            <i class="bi bi-database"></i> 资源调控
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/agriculture">
+                            <i class="bi bi-diagram-3"></i> 智能调度
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 标题 -->
+    <h1>智能污染评估系统</h1>
+
+    <!-- 上传文件与历史记录 -->
+    <div class="row upload-section">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-cloud-arrow-up"></i> 数据接入与分析</h5>
+                </div>
+                <div class="card-body">
+                    <form id="upload-form" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="location" class="form-label">
+                                <i class="bi bi-geo-alt"></i> 采样位置
+                            </label>
+                            <input type="text" class="form-control" id="location" required placeholder="输入采样地点坐标或名称"/>
+                        </div>
+                        <div class="mb-3">
+                            <label for="file-input" class="form-label">
+                                <i class="bi bi-file-binary"></i> 选择钻井数据文件
+                            </label>
+                            <input
+                                class="form-control"
+                                type="file"
+                                id="file-input"
+                                accept=".xlsx,.xls,.csv"
+                                required
+                            />
+                            <div class="form-text">
+                                <i class="bi bi-info-circle"></i> 支持Excel格式，包含字段：深度、深侧向、浅侧向、声波时差、自然伽玛、密度等
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">
+                                <i class="bi bi-chat-text"></i> 备注信息
+                            </label>
+                            <textarea
+                                class="form-control"
+                                id="notes"
+                                rows="3"
+                                placeholder="可选：输入相关采样信息、项目背景等"
+                            ></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-rocket-takeoff"></i> 启动污染评估
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- 历史记录 -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> 历史记录</h5>
+                </div>
+                <div class="card-body">
+                    <div id="history-list" class="mt-3">
+                        <div class="text-center text-muted">暂无历史记录</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载动画 -->
+    <div id="loading" class="loading-spinner">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">加载中...</span>
+        </div>
+        <p><i class="bi bi-robot"></i> AI引擎正在分析数据...</p>
+    </div>
+
+    <!-- 评估结果展示区 -->
+    <div id="assessment-result" class="assessment-result">
+        <div class="assessment-header">
+            <div class="row">
+                <div class="col-md-6">
+                    <h3 id="assessment-title"><i class="bi bi-shield-exclamation"></i> 煤污染评估结果</h3>
+                    <p id="assessment-meta" class="text-muted">采样位置：未知 | 评估时间：未知</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <div class="pollution-level">
+                        <i class="bi bi-exclamation-triangle"></i> 污染等级：
+                        <span id="pollution-grade" class="level-badge level-light">轻微</span>
+                        <div class="small text-muted mt-1" id="grade-description"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 选项卡 -->
+        <ul class="nav nav-tabs" id="assessment-tabs">
+            <li class="nav-item">
+                <a
+                    class="nav-link active"
+                    id="overview-tab"
+                    data-bs-toggle="tab"
+                    href="#overview"
+                ><i class="bi bi-bar-chart"></i> 总体评估</a>
+            </li>
+            <li class="nav-item">
+                <a
+                    class="nav-link"
+                    id="depth-tab"
+                    data-bs-toggle="tab"
+                    href="#depth-analysis"
+                ><i class="bi bi-layers"></i> 深度分析</a>
+            </li>
+            <li class="nav-item">
+                <a
+                    class="nav-link"
+                    id="pollutants-tab"
+                    data-bs-toggle="tab"
+                    href="#pollutants"
+                ><i class="bi bi-droplet"></i> 污染物类型</a>
+            </li>
+            <li class="nav-item">
+                <a
+                    class="nav-link"
+                    id="recommendations-tab"
+                    data-bs-toggle="tab"
+                    href="#recommendations"
+                ><i class="bi bi-gear"></i> 修复建议</a>
+            </li>
+        </ul>
+
+        <!-- 选项卡内容 -->
+        <div class="tab-content">
+            <!-- 总体评估 -->
+            <div class="tab-pane fade show active" id="overview">
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <div class="gauge-container">
+                            <canvas id="overall-score-gauge"></canvas>
+                            <div class="gauge-value" id="overall-score-value">0</div>
+                            <div class="gauge-label">总体污染得分</div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <h4><i class="bi bi-exclamation-diamond"></i> 风险评估</h4>
+                        <div id="risk-list">
+                            <!-- 风险将在这里动态添加 -->
+                        </div>
+
+                        <h4 class="mt-4"><i class="bi bi-graph-up-arrow"></i> 污染概况</h4>
+                        <p id="pollution-summary" class="text-light">
+                            正在分析煤污染情况...
+                        </p>
+
+                        <div class="mt-4">
+                            <h5><i class="bi bi-diagram-2"></i> 污染深度剖面</h5>
+                            <div class="chart-image-container" id="pollution-profile-container">
+                                <div class="loading-overlay">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">加载中...</span>
+                                    </div>
+                                </div>
+                                <img
+                                    id="pollution-profile-chart"
+                                    class="img-fluid rounded shadow-sm"
+                                    alt="污染深度剖面图"
+                                    style="display:none;"
+                                    onclick="showImageFullscreen(this)"
+                                />
+                                <div class="error-message" style="display:none;">
+                                    图表加载失败，请检查数据是否完整
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 深度分析 -->
+            <div class="tab-pane fade" id="depth-analysis">
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <h4><i class="bi bi-bar-chart-steps"></i> 煤含量随深度分布</h4>
+                        <div class="chart-container">
+                            <canvas id="coal-percentage-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <h4><i class="bi bi-activity"></i> 污染程度随深度分布</h4>
+                        <div class="chart-container">
+                            <canvas id="pollution-level-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 污染物分析 -->
+            <div class="tab-pane fade" id="pollutants">
+                <div class="mt-4">
+                    <h4><i class="bi bi-droplet-half"></i> 污染物分布与程度</h4>
+                    <div class="chart-image-container" id="pollutant-distribution-container">
+                        <div class="loading-overlay">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">加载中...</span>
+                            </div>
+                        </div>
+                        <img
+                            id="pollutant-distribution-chart"
+                            class="img-fluid rounded shadow-sm"
+                            alt="污染物分布图"
+                            style="display:none;"
+                            onclick="showImageFullscreen(this)"
+                        />
+                        <div class="error-message" style="display:none;">
+                            图表加载失败，请检查数据是否完整
+                        </div>
+                    </div>
+                    <div class="row" id="pollutant-cards">
+                        <!-- 动态加载每种污染物信息 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 修复建议 -->
+            <div class="tab-pane fade" id="recommendations">
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <h4><i class="bi bi-tools"></i> 修复建议</h4>
+                        <div id="recommendations-list">
+                            <!-- 建议将在这里动态添加 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 全屏查看图片的覆盖层 -->
+<div class="fullscreen-overlay" id="fullscreen-overlay">
+    <div class="close-button" onclick="closeFullscreen()">&times;</div>
+    <img id="fullscreen-image" src="" alt="全屏查看" />
+</div>
+
+<!-- Bootstrap JS & Toastify JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+<script>
+    // 初始化科技粒子效果
+    function createTechParticles() {
+        const particlesContainer = document.querySelector('.tech-particles');
+        const particleCount = 50;
+        
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 6 + 's';
+            particlesContainer.appendChild(particle);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // 初始化科技效果
+        createTechParticles();
+        
+        // 页面加载完成效果
+        setTimeout(() => {
+            document.body.classList.add('loaded');
+        }, 100);
+
+        // 检测是否能正确显示中文
+        function checkChineseFont() {
+            const testElement = document.createElement('span');
+            testElement.style.position = 'absolute';
+            testElement.style.visibility = 'hidden';
+            testElement.style.fontSize = '20px';
+            testElement.innerHTML = '中文测试';
+            document.body.appendChild(testElement);
+
+            const width = testElement.offsetWidth;
+            document.body.removeChild(testElement);
+
+            return width > 50;
+        }
+
+        if (!checkChineseFont()) {
+            console.warn("检测到中文显示可能异常，正在应用备用方案...");
+            const forceFontStyle = document.createElement('style');
+            forceFontStyle.textContent = `
+                * {
+                    font-family: 'Inter', Arial, sans-serif !important;
+                }
+            `;
+            document.head.appendChild(forceFontStyle);
+        }
+
+        // 绑定上传表单事件
+        document.getElementById('upload-form').addEventListener('submit', handleFormSubmit);
+        // 加载历史记录
+        loadPollutionHistory();
+    });
+
+    // Chart.js全局配置
+    if(window.Chart) {
+        Chart.defaults.font.family = "'Inter', Arial, sans-serif";
+        Chart.defaults.color = '#ffffff';
+        Chart.defaults.borderColor = 'rgba(0, 255, 255, 0.2)';
+        Chart.defaults.backgroundColor = 'rgba(0, 255, 255, 0.1)';
+    }
+
+    // =================== 全局变量 ======================
+    let currentAssessment = null;
+    let overallScoreGauge = null;
+    let coalPercentageChart = null;
+    let pollutionLevelChart = null;
+
+    // 提交表单 -> 上传文件 -> 触发评估
+    function handleFormSubmit(event) {
+        event.preventDefault();
+        uploadFileForAssessment();
+    }
+
+    // 上传文件并请求评估
+    function uploadFileForAssessment() {
+        const fileInput = document.getElementById('file-input');
+        const locationInput = document.getElementById('location');
+        const notesInput = document.getElementById('notes');
+
+        if (!fileInput.files.length) {
+            showToast('⚠️ 请选择数据文件', 'error');
+            return;
+        }
+        if (!locationInput.value.trim()) {
+            showToast('⚠️ 请输入采样位置', 'error');
+            return;
+        }
+
+        const file = fileInput.files[0];
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('location', locationInput.value.trim());
+        formData.append('notes', notesInput.value.trim());
+
+        // 显示加载动画，隐藏结果
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('assessment-result').style.display = 'none';
+
+        // 重置图片容器
+        resetImageContainer('pollution-profile-container');
+        resetImageContainer('pollutant-distribution-container');
+
+        // 发送评估请求
+        fetch('/pollution-assessment', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.error || '评估失败');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            currentAssessment = data;
+            showToast('🚀 评估完成', 'success');
+            displayAssessmentResult(data);
+
+            // 显示结果
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('assessment-result').style.display = 'block';
+
+            // 重新加载历史记录
+            loadPollutionHistory();
+        })
+        .catch(err => {
+            document.getElementById('loading').style.display = 'none';
+            showToast('❌ ' + err.message, 'error');
+            console.error(err);
+        });
+    }
+
+    // 重置图片容器状态
+    function resetImageContainer(containerId) {
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.querySelector('.loading-overlay').style.display = 'flex';
+            const img = container.querySelector('img');
+            if (img) img.style.display = 'none';
+            const errorMsg = container.querySelector('.error-message');
+            if (errorMsg) errorMsg.style.display = 'none';
+        }
+    }
+
+    // 更新图片容器状态
+    function updateImageContainer(containerId, imageId, base64Data) {
+        const container = document.getElementById(containerId);
+        const img = document.getElementById(imageId);
+        const loading = container.querySelector('.loading-overlay');
+        const errorMsg = container.querySelector('.error-message');
+
+        loading.style.display = 'none';
+
+        if (base64Data && base64Data.length > 100) {
+            try {
+                img.src = 'data:image/png;base64,' + base64Data;
+                img.style.display = 'block';
+                errorMsg.style.display = 'none';
+
+                img.onload = function() {
+                    console.log(`图片 ${imageId} 加载成功`);
+                };
+                img.onerror = function() {
+                    console.error(`图片 ${imageId} 加载失败`);
+                    img.style.display = 'none';
+                    errorMsg.style.display = 'block';
+                };
+            } catch (e) {
+                console.error('图片加载错误:', e);
+                img.style.display = 'none';
+                errorMsg.style.display = 'block';
+            }
+        } else {
+            img.style.display = 'none';
+            errorMsg.style.display = 'block';
+            console.warn(`图片数据无效: ${containerId}`);
+        }
+    }
+
+    // 全屏显示图片
+    function showImageFullscreen(imgElement) {
+        const fullscreenImg = document.getElementById('fullscreen-image');
+        fullscreenImg.src = imgElement.src;
+        document.getElementById('fullscreen-overlay').style.display = 'flex';
+    }
+
+    // 关闭全屏图片
+    function closeFullscreen() {
+        document.getElementById('fullscreen-overlay').style.display = 'none';
+    }
+
+    // 显示评估结果
+    function displayAssessmentResult(assessmentData) {
+        if (!assessmentData || !assessmentData.assessment) {
+            showToast('评估结果不完整', 'error');
+            return;
+        }
+        const assess = assessmentData.assessment;
+
+        // 更新头部信息
+        document.getElementById('assessment-title').innerHTML = '<i class="bi bi-shield-exclamation"></i> 煤污染评估结果';
+        document.getElementById('assessment-meta').textContent =
+            `采样位置：${assessmentData.location} | 评估时间：${assessmentData.timestamp}`;
+
+        // 污染等级
+        const gradeElement = document.getElementById('pollution-grade');
+        gradeElement.textContent = assess.pollution_grade || '未知';
+        gradeElement.className = 'level-badge';
+        if (assess.pollution_grade === '轻微') {
+            gradeElement.classList.add('level-light');
+        } else if (assess.pollution_grade === '轻度') {
+            gradeElement.classList.add('level-mild');
+        } else if (assess.pollution_grade === '中度') {
+            gradeElement.classList.add('level-moderate');
+        } else if (assess.pollution_grade === '严重') {
+            gradeElement.classList.add('level-severe');
+        } else {
+            gradeElement.classList.add('level-extreme');
+        }
+
+        // 等级描述
+        document.getElementById('grade-description').textContent =
+            assess.grade_description || '';
+
+        // 风险列表
+        const riskList = document.getElementById('risk-list');
+        riskList.innerHTML = '';
+        if (assess.risks && assess.risks.length > 0) {
+            assess.risks.forEach(risk => {
+                const item = document.createElement('div');
+                item.className = 'risk-item';
+                item.innerHTML = `<i class="bi bi-exclamation-triangle"></i> ${risk}`;
+                riskList.appendChild(item);
+            });
+        } else {
+            riskList.innerHTML = '<div class="text-muted"><i class="bi bi-check-circle"></i> 未发现明显风险</div>';
+        }
+
+        // 总体得分
+        const overallScore = Math.round(assess.overall_score || 0);
+        document.getElementById('overall-score-value').textContent = overallScore;
+
+        // 概要描述
+        document.getElementById('pollution-summary').textContent =
+            buildPollutionSummary(assess);
+
+        // 仪表盘
+        createOverallScoreGauge(overallScore);
+
+        // 显示图表
+        const pollProfile = assess.visualizations && assess.visualizations.pollution_profile;
+        updateImageContainer('pollution-profile-container', 'pollution-profile-chart', pollProfile);
+
+        const pollutantDist = assess.visualizations && assess.visualizations.pollutant_distribution;
+        updateImageContainer('pollutant-distribution-container', 'pollutant-distribution-chart', pollutantDist);
+
+        // 更新修复建议
+        generateRecommendations(assess);
+
+        // 更新图表
+        createCoalPercentageChart(assess.segments);
+        createPollutionLevelChart(assess.segments);
+    }
+
+    // 生成概要描述
+    function buildPollutionSummary(assess) {
+        let summary = `分析显示，该区域煤污染等级为「${assess.pollution_grade}」；总体污染得分为${Math.round(assess.overall_score)}分（满分100）。`;
+
+        if (assess.segments && assess.segments.length > 0) {
+            const worstSeg = [...assess.segments]
+                .sort((a,b) => b.pollution_level - a.pollution_level)[0];
+            if (worstSeg.pollution_level > 0) {
+                summary += ` 污染最严重深度在 ${worstSeg.start_depth.toFixed(1)} - ${worstSeg.end_depth.toFixed(1)} 米，`;
+                summary += `煤含量约${(worstSeg.coal_percentage * 100).toFixed(1)}%，污染指数为${worstSeg.pollution_level.toFixed(1)}/10。`;
+            }
+        }
+        if (assess.risks && assess.risks.length) {
+            summary += ` 主要风险包括：${assess.risks.join('、')}。`;
+        }
+        return summary;
+    }
+
+    // 建议
+    function generateRecommendations(assess) {
+        const listContainer = document.getElementById('recommendations-list');
+        listContainer.innerHTML = '';
+        
+        if (assess.recommendations && assess.recommendations.length > 0) {
+            assess.recommendations.forEach(rec => {
+                const div = document.createElement('div');
+                div.className = 'recommendation';
+                div.innerHTML = `<i class="bi bi-lightbulb"></i> ${rec}`;
+                listContainer.appendChild(div);
+            });
+            return;
+        }
+        
+        const recs = [];
+        const score = assess.overall_score;
+        if (score < 20) {
+            recs.push('当前煤污染程度轻微，建议定期监测，无需特别处理。');
+        } else if (score < 40) {
+            recs.push('轻度煤污染，需加强监测，防止污染扩散。');
+        } else if (score < 60) {
+            recs.push('中度煤污染，需要实施一定的治理措施。');
+        } else if (score < 80) {
+            recs.push('严重煤污染，需要立即采取修复行动。');
+        } else {
+            recs.push('极严重煤污染，需要紧急修复和管控措施。');
+        }
+        
+        recs.forEach(r => {
+            const div = document.createElement('div');
+            div.className = 'recommendation';
+            div.innerHTML = `<i class="bi bi-lightbulb"></i> ${r}`;
+            listContainer.appendChild(div);
+        });
+    }
+
+    // 仪表盘图表
+    function createOverallScoreGauge(score) {
+        const ctx = document.getElementById('overall-score-gauge').getContext('2d');
+        if (overallScoreGauge) overallScoreGauge.destroy();
+        overallScoreGauge = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [score, 100 - score],
+                    backgroundColor: [getScoreColor(score), 'rgba(255, 255, 255, 0.1)'],
+                    borderWidth: 0,
+                    circumference: 180,
+                    rotation: 270
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    tooltip: { enabled: false },
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+
+    function getScoreColor(score) {
+        if (score < 20) return '#00ff88';
+        if (score < 40) return '#ffaa00';
+        if (score < 60) return '#ff6600';
+        if (score < 80) return '#ff3366';
+        return '#9933ff';
+    }
+
+    // 煤含量图表
+    function createCoalPercentageChart(segments) {
+        const ctx = document.getElementById('coal-percentage-chart').getContext('2d');
+        if (coalPercentageChart) coalPercentageChart.destroy();
+
+        const labels = segments.map(s => `${s.start_depth.toFixed(1)}-${s.end_depth.toFixed(1)}m`);
+        const data = segments.map(s => s.coal_percentage * 100);
+
+        coalPercentageChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: '煤含量 (%)',
+                    data,
+                    backgroundColor: 'rgba(0, 255, 255, 0.3)',
+                    borderColor: '#00ffff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: '煤含量 (%)',
+                            color: '#00ffff'
+                        },
+                        ticks: {
+                            color: '#ffffff'
+                        },
+                        grid: {
+                            color: 'rgba(0, 255, 255, 0.2)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: '深度范围 (m)',
+                            color: '#00ffff'
+                        },
+                        ticks: {
+                            color: '#ffffff'
+                        },
+                        grid: {
+                            color: 'rgba(0, 255, 255, 0.2)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#ffffff'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 污染程度图表
+    function createPollutionLevelChart(segments) {
+        const ctx = document.getElementById('pollution-level-chart').getContext('2d');
+        if (pollutionLevelChart) pollutionLevelChart.destroy();
+
+        const labels = segments.map(s => `${s.start_depth.toFixed(1)}-${s.end_depth.toFixed(1)}m`);
+        const data = segments.map(s => s.pollution_level);
+
+        pollutionLevelChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: '污染程度 (0-10)',
+                    data,
+                    backgroundColor: function(context) {
+                        const val = context.dataset.data[context.dataIndex];
+                        if (val < 2) return 'rgba(0, 255, 136, 0.3)';
+                        if (val < 4) return 'rgba(255, 170, 0, 0.3)';
+                        if (val < 6) return 'rgba(255, 102, 0, 0.3)';
+                        if (val < 8) return 'rgba(255, 51, 102, 0.3)';
+                        return 'rgba(153, 51, 255, 0.3)';
+                    },
+                    borderColor: function(context) {
+                        const val = context.dataset.data[context.dataIndex];
+                        if (val < 2) return '#00ff88';
+                        if (val < 4) return '#ffaa00';
+                        if (val < 6) return '#ff6600';
+                        if (val < 8) return '#ff3366';
+                        return '#9933ff';
+                    },
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 10,
+                        title: {
+                            display: true,
+                            text: '污染程度 (0-10)',
+                            color: '#00ffff'
+                        },
+                        ticks: {
+                            color: '#ffffff'
+                        },
+                        grid: {
+                            color: 'rgba(0, 255, 255, 0.2)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: '深度范围 (m)',
+                            color: '#00ffff'
+                        },
+                        ticks: {
+                            color: '#ffffff'
+                        },
+                        grid: {
+                            color: 'rgba(0, 255, 255, 0.2)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#ffffff'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 加载历史记录
+    function loadPollutionHistory() {
+        fetch('/pollution-history')
+            .then(response => response.json())
+            .then(data => {
+                const historyList = document.getElementById('history-list');
+                if (!Object.keys(data).length) {
+                    historyList.innerHTML = '<div class="text-center text-muted">暂无历史记录</div>';
+                    return;
+                }
+                historyList.innerHTML = '';
+                for (const location in data) {
+                    const record = data[location];
+                    const recordItem = document.createElement('div');
+                    recordItem.className = 'history-record';
+                    recordItem.dataset.key = record.key;
+                    recordItem.innerHTML = `
+                        <div><strong><i class="bi bi-geo-alt"></i> ${location}</strong></div>
+                        <div class="small text-muted">${record.timestamp}</div>
+                        <div class="mt-1">
+                            <i class="bi bi-shield"></i> 污染等级:
+                            <span class="level-badge ${getGradeClass(record.pollution_grade)}">
+                                ${record.pollution_grade}
+                            </span>
+                        </div>
+                    `;
+                    recordItem.addEventListener('click', () => {
+                        loadHistoryDetail(record.key);
+                    });
+                    historyList.appendChild(recordItem);
+                }
+            })
+            .catch(err => console.error(err));
+    }
+
+    // 获得污染等级对应的class
+    function getGradeClass(grade) {
+        switch (grade) {
+            case '轻微': return 'level-light';
+            case '轻度': return 'level-mild';
+            case '中度': return 'level-moderate';
+            case '严重': return 'level-severe';
+            case '极严重': return 'level-extreme';
+            default: return 'level-light';
+        }
+    }
+
+    // 加载历史详情
+    function loadHistoryDetail(key) {
+        document.getElementById('loading').style.display = 'block';
+
+        resetImageContainer('pollution-profile-container');
+        resetImageContainer('pollutant-distribution-container');
+
+        fetch(`/pollution-history/${key}`)
+            .then(resp => {
+                if (!resp.ok) throw new Error('未找到历史记录');
+                return resp.json();
+            })
+            .then(data => {
+                currentAssessment = data;
+                displayAssessmentResult(data);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('assessment-result').style.display = 'block';
+                document.getElementById('assessment-result').scrollIntoView({
+                    behavior: 'smooth'
+                });
+            })
+            .catch(err => {
+                document.getElementById('loading').style.display = 'none';
+                               showToast('❌ ' + err.message, 'error');
+                console.error(err);
+            });
+    }
+
+    // 提示消息
+    function showToast(message, type) {
+        const bgColor = type === 'error' ?
+            "linear-gradient(135deg, #ff3366 0%, #ff6699 100%)" :
+            "linear-gradient(135deg, #00ff88 0%, #00cc66 100%)";
+
+        Toastify({
+            text: message,
+            duration: 4000,
+            gravity: 'top',
+            position: 'center',
+            backgroundColor: bgColor,
+            className: "toast-tech",
+            style: {
+                borderRadius: "15px",
+                fontFamily: "'Orbitron', monospace",
+                fontWeight: "bold",
+                textTransform: "uppercase",
+                letterSpacing: "1px",
+                boxShadow: "0 10px 30px rgba(0, 255, 255, 0.3)",
+                border: type === 'error' ? "2px solid #ff6699" : "2px solid #00cc66"
+            }
+        }).showToast();
+    }
+
+    // 页面卸载时的清理
+    window.addEventListener('beforeunload', function() {
+        if (overallScoreGauge) {
+            overallScoreGauge.destroy();
+        }
+        if (coalPercentageChart) {
+            coalPercentageChart.destroy();
+        }
+        if (pollutionLevelChart) {
+            pollutionLevelChart.destroy();
+        }
+    });
+</script>
+
+<style>
+    /* 补充的科技感提示框样式 */
+    .toast-tech {
+        animation: slideInFromTop 0.5s ease-out;
+    }
+
+    @keyframes slideInFromTop {
+        from {
+            opacity: 0;
+            transform: translateY(-50px) scale(0.8);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    /* 增强的加载覆盖层样式 */
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(26, 26, 46, 0.9);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+        backdrop-filter: blur(10px);
+    }
+
+    .error-message {
+        padding: 30px;
+        color: #ff3366;
+        text-align: center;
+        font-style: italic;
+        font-family: 'Orbitron', monospace;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* 文件输入框增强样式 */
+    .form-control::file-selector-button {
+        background: var(--accent-gradient);
+        border: none;
+        border-radius: 10px;
+        color: #000000;
+        font-weight: bold;
+        padding: 0.5rem 1rem;
+        margin-right: 1rem;
+        transition: var(--transition);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-control::file-selector-button:hover {
+        background: var(--primary-gradient);
+        color: #ffffff;
+        transform: scale(1.05);
+    }
+
+    /* 增强的按钮点击效果 */
+    .btn:active {
+        transform: translateY(-1px) scale(0.98);
+    }
+
+    /* 图表容器增强效果 */
+    .chart-container:hover {
+        box-shadow: inset 0 4px 20px rgba(0, 255, 255, 0.1);
+    }
+
+    /* 选项卡内容区域样式 */
+    .tab-content {
+        background: rgba(15, 52, 96, 0.1);
+        border-radius: 0 0 var(--border-radius) var(--border-radius);
+        padding: 2rem;
+        margin-top: -1px;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        border-top: none;
+    }
+
+    /* 增强的历史记录卡片动效 */
+    .history-record {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .history-record::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+        transition: left 0.8s ease;
+    }
+
+    .history-record:hover::before {
+        left: 100%;
+    }
+
+    /* 污染等级徽章动画 */
+    .level-badge {
+        animation: badge-glow 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes badge-glow {
+        from {
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+        to {
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+        }
+    }
+
+    /* 滚动条增强样式 */
+    ::-webkit-scrollbar {
+        width: 12px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: rgba(26, 26, 46, 0.8);
+        border-radius: 6px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--accent-gradient);
+        border-radius: 6px;
+        box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #00ffff;
+        transform: scale(1.1);
+    }
+
+    ::-webkit-scrollbar-thumb:active {
+        background: linear-gradient(135deg, #00ffff 0%, #ff3366 100%);
+    }
+
+    /* 响应式优化 */
+    @media (max-width: 992px) {
+        .assessment-header .row {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .assessment-header .col-md-6:last-child {
+            margin-top: 1rem;
+            text-align: center !important;
+        }
+
+        .gauge-container {
+            margin-bottom: 2rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .container {
+            padding: 1rem;
+        }
+
+        .navbar {
+            padding: 1rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin: 1rem 0;
+        }
+
+        .chart-container {
+            height: 300px;
+            padding: 1rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .nav-tabs .nav-link {
+            padding: 10px 15px;
+            font-size: 0.9rem;
+        }
+
+        .level-badge {
+            font-size: 0.8rem;
+            padding: 6px 12px;
+        }
+    }
+
+    /* 打印样式 */
+    @media print {
+        .navbar, .upload-section, .loading-spinner {
+            display: none !important;
+        }
+
+        body {
+            background: white !important;
+            color: black !important;
+        }
+
+        .container {
+            background: white !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        .card {
+            border: 1px solid #ddd !important;
+            background: white !important;
+        }
+    }
+</style>
+</body>
+</html>

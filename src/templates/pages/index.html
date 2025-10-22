@@ -1,0 +1,1785 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>煤链智调 - 智能煤层分析系统</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@14.6.3/distribute/nouislider.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nouislider@14.6.3/distribute/nouislider.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary-gradient: linear-gradient(135deg, #0f3460 0%, #0066cc 50%, #00ccff 100%);
+            --secondary-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            --accent-gradient: linear-gradient(135deg, #00ffff 0%, #0080ff 100%);
+            --danger-gradient: linear-gradient(135deg, #ff3366 0%, #ff6699 100%);
+            --success-gradient: linear-gradient(135deg, #00ff88 0%, #00cc66 100%);
+            --dark-gradient: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            --card-shadow: 0 20px 40px rgba(0, 255, 255, 0.1);
+            --card-hover-shadow: 0 30px 60px rgba(0, 255, 255, 0.2);
+            --glow-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            --border-radius: 20px;
+            --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0a;
+            background-image:
+                radial-gradient(circle at 25% 25%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(0, 102, 204, 0.1) 0%, transparent 50%),
+                linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0f3460 100%);
+            min-height: 100vh;
+            margin: 0;
+            color: #ffffff;
+            font-weight: 400;
+            overflow-x: hidden;
+        }
+
+        /* 科技网格背景 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* 浮动科技粒子 */
+        .tech-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #00ffff;
+            border-radius: 50%;
+            animation: float 6s infinite ease-in-out;
+            box-shadow: 0 0 10px #00ffff;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0) scale(1);
+                opacity: 0.5;
+            }
+            50% {
+                transform: translateY(-100px) translateX(50px) scale(1.2);
+                opacity: 1;
+            }
+        }
+
+        .main-container {
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            margin: 20px;
+            padding: 0;
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 容器发光边框 */
+        .main-container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: var(--accent-gradient);
+            border-radius: var(--border-radius);
+            z-index: -1;
+            opacity: 0.3;
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { opacity: 0.3; }
+            to { opacity: 0.6; }
+        }
+
+        /* 导航栏样式 */
+        .navbar {
+            background: var(--secondary-gradient) !important;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 4px 30px rgba(0, 255, 255, 0.2);
+            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+            position: relative;
+        }
+
+        .navbar::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent-gradient);
+            animation: pulse-line 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-line {
+            0%, 100% { opacity: 0.5; transform: scaleX(1); }
+            50% { opacity: 1; transform: scaleX(1.02); }
+        }
+
+        .navbar-brand {
+            color: #00ffff !important;
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+        }
+
+        .navbar-brand::before {
+            content: "⚡";
+            font-size: 2rem;
+            animation: rotate 4s linear infinite;
+            color: #00ffff;
+            text-shadow: 0 0 20px #00ffff;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .navbar-brand:hover {
+            text-shadow: 0 0 30px #00ffff;
+            transform: scale(1.05);
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 600;
+            transition: var(--transition);
+            padding: 0.75rem 1.5rem !important;
+            border-radius: 15px;
+            margin: 0 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--accent-gradient);
+            transition: left 0.5s;
+            z-index: -1;
+            opacity: 0.2;
+        }
+
+        .nav-link:hover::before, .nav-link.active::before {
+            left: 0;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: #00ffff !important;
+            background: rgba(0, 255, 255, 0.1);
+            transform: translateY(-2px);
+            box-shadow: var(--glow-shadow);
+        }
+
+        /* 标题样式 */
+        .main-title {
+            text-align: center;
+            margin: 3rem 0;
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            font-size: 3rem;
+            color: #00ffff;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            position: relative;
+            text-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+        }
+
+        .main-title::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 4px;
+            background: var(--accent-gradient);
+            border-radius: 2px;
+            animation: expand 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes expand {
+            from { width: 200px; opacity: 0.7; }
+            to { width: 250px; opacity: 1; }
+        }
+
+        /* 卡片样式 */
+        .card {
+            border: none;
+            border-radius: var(--border-radius);
+            background: rgba(26, 26, 46, 0.9);
+            backdrop-filter: blur(20px);
+            box-shadow: var(--card-shadow);
+            transition: var(--transition);
+            overflow: hidden;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            position: relative;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: var(--accent-gradient);
+            transition: left 0.8s ease;
+        }
+
+        .card:hover {
+            box-shadow: var(--card-hover-shadow);
+            transform: translateY(-5px);
+            border-color: rgba(0, 255, 255, 0.5);
+        }
+
+        .card:hover::before {
+            left: 0;
+        }
+
+        .card-header {
+            background: var(--secondary-gradient);
+            color: #00ffff;
+            font-weight: 700;
+            border: none;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .card-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--accent-gradient);
+        }
+
+        .card-body {
+            padding: 2.5rem;
+            background: rgba(15, 52, 96, 0.1);
+        }
+
+        .card-title {
+            font-weight: 700;
+            color: #00ffff;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* 上传区域样式 */
+        .upload-section {
+            padding: 0 2rem;
+        }
+
+        .upload-card {
+            background: rgba(15, 52, 96, 0.2);
+            border: 2px dashed rgba(0, 255, 255, 0.5);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .upload-card:hover {
+            border-color: #00ffff;
+            background: rgba(0, 255, 255, 0.1);
+            box-shadow: var(--glow-shadow);
+        }
+
+        .upload-card::before {
+            content: '⚡';
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 2rem;
+            color: #00ffff;
+            opacity: 0.3;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+        }
+
+        .form-control {
+            background: rgba(26, 26, 46, 0.8);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 1rem 1.5rem;
+            transition: var(--transition);
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        .form-control:focus {
+            background: rgba(15, 52, 96, 0.9);
+            border-color: #00ffff;
+            box-shadow: var(--glow-shadow);
+            color: #ffffff;
+        }
+
+        .form-text {
+            color: rgba(0, 255, 255, 0.8);
+            font-weight: 500;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            border-radius: 15px;
+            font-weight: 700;
+            padding: 1rem 2rem;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.6s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            border: none;
+            box-shadow: 0 8px 25px rgba(0, 102, 204, 0.4);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: var(--card-hover-shadow);
+            color: #ffffff;
+        }
+
+        .btn-outline-primary {
+            border: 2px solid #00ffff;
+            color: #00ffff;
+            background: transparent;
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--accent-gradient);
+            border-color: transparent;
+            color: #000000;
+            font-weight: 800;
+        }
+
+        .btn-success {
+            background: var(--success-gradient);
+            border: none;
+            box-shadow: 0 8px 25px rgba(0, 255, 136, 0.4);
+            color: #000000;
+        }
+
+        .btn-outline-success {
+            border: 2px solid #00ff88;
+            color: #00ff88;
+        }
+
+        /* 图表容器样式 */
+        .chart-container {
+            position: relative;
+            height: 70vh;
+            margin-top: 30px;
+            background: rgba(10, 10, 10, 0.8);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            box-shadow: inset 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        /* 指标按钮样式 */
+        .indicator-btn {
+            margin: 0.5rem;
+            font-size: 0.9rem;
+            border-radius: 25px;
+            padding: 0.75rem 1.5rem;
+            position: relative;
+            overflow: hidden;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* 深度选择下拉菜单 */
+        .depth-select {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            box-shadow: var(--glow-shadow);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .dropdown-menu {
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            padding: 1rem;
+        }
+
+        .dropdown-item {
+            color: #ffffff;
+            border-radius: 10px;
+            transition: var(--transition);
+            font-weight: 600;
+            padding: 0.75rem 1rem;
+        }
+
+        .dropdown-item:hover {
+            background: var(--accent-gradient);
+            color: #000000;
+            transform: translateX(10px);
+            font-weight: 800;
+        }
+
+        /* 煤层信息样式 */
+        .coal-info {
+            background: rgba(26, 26, 46, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 51, 102, 0.5);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(255, 51, 102, 0.1);
+            position: sticky;
+            top: 20px;
+        }
+
+        .coal-info h5 {
+            color: #ff3366;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 0 20px rgba(255, 51, 102, 0.5);
+        }
+
+        .coal-layer-item {
+            background: rgba(255, 51, 102, 0.1);
+            border-left: 4px solid #ff3366;
+            border-radius: 0 15px 15px 0;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            transition: var(--transition);
+            cursor: pointer;
+            position: relative;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 51, 102, 0.2);
+        }
+
+        .coal-layer-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--danger-gradient);
+            border-radius: 0 2px 2px 0;
+        }
+
+        .coal-layer-item:hover {
+            background: rgba(255, 51, 102, 0.2);
+            border-left-color: #ff6699;
+            transform: translateX(10px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(255, 51, 102, 0.3);
+        }
+
+        /* 煤层图例样式 */
+        .coal-legend {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #00ffff;
+            padding: 1rem 1.5rem;
+            background: rgba(255, 51, 102, 0.1);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 51, 102, 0.3);
+        }
+
+        .coal-legend-line {
+            display: inline-block;
+            width: 40px;
+            height: 4px;
+            background: var(--danger-gradient);
+            margin-right: 1rem;
+            border-radius: 2px;
+            box-shadow: 0 0 10px rgba(255, 51, 102, 0.5);
+        }
+
+        /* 深度滑块样式 */
+        .depth-slider-container {
+            margin: 3rem 2rem;
+            padding: 2rem;
+            background: rgba(15, 52, 96, 0.2);
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            box-shadow: inset 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .depth-range-slider {
+            height: 10px;
+        }
+
+        .noUi-target {
+            background: rgba(26, 26, 46, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .noUi-connect {
+            background: var(--accent-gradient);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .noUi-handle {
+            width: 28px !important;
+            height: 28px !important;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+            border: 4px solid #00ffff !important;
+            cursor: grab;
+            top: -9px !important;
+            transition: var(--transition);
+        }
+
+        .noUi-handle:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 1);
+        }
+
+        .noUi-handle:active {
+            cursor: grabbing;
+            transform: scale(0.9);
+        }
+
+        .noUi-handle::before,
+        .noUi-handle::after {
+            display: none;
+        }
+
+        .depth-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1.5rem;
+            color: #00ffff;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* 加载动画样式 */
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            margin: 4rem 0;
+            padding: 3rem;
+            background: rgba(15, 52, 96, 0.3);
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            box-shadow: var(--card-shadow);
+        }
+
+        .spinner-border {
+            width: 5rem;
+            height: 5rem;
+            border-width: 0.5rem;
+            border-color: #00ffff;
+            border-right-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-spinner p {
+            margin-top: 2rem;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            color: #00ffff;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            animation: pulse 2s infinite;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .main-container {
+                margin: 10px;
+            }
+
+            .main-title {
+                font-size: 2rem;
+            }
+
+            .chart-container {
+                height: 50vh;
+            }
+
+            .navbar {
+                padding: 1rem;
+            }
+
+            .card-body {
+                padding: 1.5rem;
+            }
+
+            .coal-info {
+                margin-top: 2rem;
+                position: static;
+            }
+
+            .chart-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn-toolbar {
+                justify-content: center;
+            }
+
+            .indicator-btn {
+                font-size: 0.8rem;
+                padding: 0.5rem 1rem;
+            }
+        }
+
+        /* 高级动画效果 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(26, 26, 46, 0.5);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-gradient);
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00ffff;
+        }
+
+        /* 科技感扫描线效果 */
+        @keyframes scan {
+            0% { transform: translateX(-100%); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateX(100vw); opacity: 0; }
+        }
+
+        .scan-line {
+            position: fixed;
+            top: 0;
+            left: -100px;
+            width: 2px;
+            height: 100vh;
+            background: var(--accent-gradient);
+            animation: scan 10s linear infinite;
+            z-index: 1000;
+            pointer-events: none;
+            box-shadow: 0 0 20px #00ffff;
+        }
+    </style>
+</head>
+<body>
+    <!-- 科技粒子背景 -->
+    <div class="tech-particles"></div>
+
+    <!-- 扫描线效果 -->
+    <div class="scan-line"></div>
+
+    <div class="main-container">
+        <nav class="navbar navbar-expand-lg">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">矿能云析</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="border-color: #00ffff;">
+                    <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/">
+                                <i class="bi bi-cpu"></i> 智能分析
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/pollution">
+                                <i class="bi bi-shield-check"></i> 污染监测
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/resource">
+                                <i class="bi bi-database"></i> 资源调控
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/agriculture">
+                                <i class="bi bi-diagram-3"></i> 智能调度
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container-fluid" style="padding: 2rem;">
+            <h1 class="main-title">矿能云析系统</h1>
+
+            <div class="row upload-section fade-in-up">
+                <div class="col-lg-8 mx-auto">
+                    <div class="card upload-card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="bi bi-cloud-arrow-up"></i> 智能数据接入</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="upload-form" enctype="multipart/form-data">
+                                <div class="mb-4">
+                                    <label for="file-input" class="form-label fw-bold">
+                                        <i class="bi bi-file-binary"></i> 上传钻井数据文件
+                                    </label>
+                                    <input class="form-control" type="file" id="file-input" accept=".xlsx,.xls,.csv">
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle"></i> 支持Excel格式文件，包含字段：深度、深侧向、浅侧向、声波时差、自然伽玛、密度
+                                    </div>
+                                </div>
+                                <div class="text-center">
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="bi bi-rocket-takeoff"></i> 启动AI分析引擎
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="loading" class="loading-spinner fade-in-up">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">加载中...</span>
+                </div>
+                <p><i class="bi bi-robot"></i> AI引擎正在分析数据...</p>
+            </div>
+
+            <div id="results-section" style="display: none;" class="fade-in-up">
+                <div class="row">
+                    <div class="col-xl-9 col-lg-8">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="chart-header">
+                                    <h5 class="card-title mb-0" id="chart-title">
+                                        <i class="bi bi-graph-up-arrow"></i> 深侧向数据智能分析
+                                    </h5>
+                                    <div class="btn-group">
+                                        <button class="btn depth-select dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            <i class="bi bi-zoom-in"></i> 分析范围: 200m
+                                        </button>
+                                        <ul class="dropdown-menu" id="depth-range-menu">
+                                            <li><a class="dropdown-item" href="#" data-value="25">
+                                                <i class="bi bi-arrow-up-down"></i> 25米精度
+                                            </a></li>
+                                            <li><a class="dropdown-item" href="#" data-value="50">
+                                                <i class="bi bi-arrow-up-down"></i> 50米精度
+                                            </a></li>
+                                            <li><a class="dropdown-item" href="#" data-value="100">
+                                                <i class="bi bi-arrow-up-down"></i> 100米精度
+                                            </a></li>
+                                            <li><a class="dropdown-item" href="#" data-value="200">
+                                                <i class="bi bi-arrow-up-down"></i> 200米精度
+                                            </a></li>
+                                            <li><a class="dropdown-item" href="#" data-value="300">
+                                                <i class="bi bi-arrow-up-down"></i> 300米精度
+                                            </a></li>
+                                            <li><a class="dropdown-item" href="#" data-value="500">
+                                                <i class="bi bi-arrow-up-down"></i> 500米精度
+                                            </a></li>
+                                            <li><a class="dropdown-item" href="#" data-value="all">
+                                                <i class="bi bi-arrows-fullscreen"></i> 全范围扫描
+                                            </a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div class="btn-toolbar justify-content-center mb-4">
+                                    <div class="btn-group me-2 flex-wrap" id="indicator-buttons">
+                                        <button type="button" class="btn btn-sm btn-primary indicator-btn" data-indicator="深侧向">
+                                            <i class="bi bi-activity"></i> 深侧向
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-primary indicator-btn" data-indicator="浅侧向">
+                                            <i class="bi bi-activity"></i> 浅侧向
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-primary indicator-btn" data-indicator="声波时差">
+                                            <i class="bi bi-soundwave"></i> 声波时差
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-primary indicator-btn" data-indicator="自然伽玛">
+                                            <i class="bi bi-radioactive"></i> 自然伽玛
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-primary indicator-btn" data-indicator="密度">
+                                            <i class="bi bi-water"></i> 密度分析
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-primary indicator-btn" data-indicator="双侧向电阻率">
+                                            <i class="bi bi-lightning-charge"></i> 电阻率
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-success indicator-btn" data-indicator="all">
+                                            <i class="bi bi-diagram-3"></i> 全参数分析
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="coal-legend">
+                                    <span class="coal-legend-line"></span>
+                                    <span><i class="bi bi-gem"></i> 煤层边界智能识别</span>
+                                </div>
+
+                                <div class="chart-container">
+                                    <canvas id="main-chart"></canvas>
+                                </div>
+
+                                <div class="depth-slider-container">
+                                    <div id="depth-range-slider" class="depth-range-slider"></div>
+                                    <div class="depth-labels">
+                                        <span id="min-depth-label"><i class="bi bi-arrow-up"></i> 0m</span>
+                                        <span id="max-depth-label"><i class="bi bi-arrow-down"></i> 100m</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-lg-4">
+                        <div class="coal-info">
+                            <h5>煤层智能识别 <span id="total-thickness" class="text-muted"></span></h5>
+                            <div id="coal-layers-list"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    <script>
+        // 初始化科技粒子效果
+        function createTechParticles() {
+            const particlesContainer = document.querySelector('.tech-particles');
+            const particleCount = 50;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // 页面加载时初始化粒子效果
+        document.addEventListener('DOMContentLoaded', function() {
+            createTechParticles();
+        });
+
+        // 全局变量
+        let chartData = null;
+        let mainChart = null;
+        let currentIndicator = '深侧向';
+        let currentWindowSize = 200;
+        let currentTopDepth = 0;
+        let depthSlider = null;
+        let currentFilename = null;
+
+        // 科技感颜色配置
+        const indicatorColors = {
+            '深侧向': '#00ffff',
+            '浅侧向': '#ff6600',
+            '声波时差': '#00ff88',
+            '自然伽玛': '#ff3366',
+            '密度': '#9933ff',
+            '双侧向电阻率': '#ffff00'
+        };
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 绑定文件上传事件
+            document.getElementById('upload-form').addEventListener('submit', function(event) {
+                event.preventDefault();
+                uploadFile();
+            });
+
+            // 绑定指标按钮点击事件
+            document.getElementById('indicator-buttons').addEventListener('click', function(event) {
+                if (event.target.classList.contains('indicator-btn') || event.target.closest('.indicator-btn')) {
+                    const btn = event.target.classList.contains('indicator-btn') ? event.target : event.target.closest('.indicator-btn');
+                    const indicator = btn.getAttribute('data-indicator');
+                    updateIndicator(indicator);
+
+                    // 更新按钮状态
+                    document.querySelectorAll('.indicator-btn').forEach(button => {
+                        button.classList.remove('btn-primary', 'btn-success');
+                        button.classList.add('btn-outline-primary');
+                        if (indicator === 'all' && button.getAttribute('data-indicator') === 'all') {
+                            button.classList.remove('btn-outline-success', 'btn-outline-primary');
+                            button.classList.add('btn-success');
+                        } else if (indicator !== 'all' && button.getAttribute('data-indicator') === 'all') {
+                            button.classList.remove('btn-success');
+                            button.classList.add('btn-outline-success');
+                        }
+                    });
+
+                    if (indicator !== 'all') {
+                        btn.classList.remove('btn-outline-primary');
+                        btn.classList.add('btn-primary');
+                    }
+                }
+            });
+
+            // 绑定深度范围下拉菜单
+            document.getElementById('depth-range-menu').addEventListener('click', function(event) {
+                if (event.target.tagName === 'A' || event.target.closest('a')) {
+                    event.preventDefault();
+                    const link = event.target.tagName === 'A' ? event.target : event.target.closest('a');
+                    const value = link.getAttribute('data-value');
+                    updateDepthRange(value);
+
+                    // 更新下拉按钮文本
+                    const text = value === 'all' ? '全范围扫描' : `${value}米精度`;
+                    document.querySelector('.depth-select').innerHTML = `<i class="bi bi-zoom-in"></i> 分析范围: ${text}`;
+                }
+            });
+        });
+
+        // 上传文件并获取数据
+        function uploadFile() {
+            const fileInput = document.getElementById('file-input');
+            if (!fileInput.files.length) {
+                showToast('⚠️ 请选择数据文件', 'error');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            currentFilename = file.name;
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // 显示加载动画
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results-section').style.display = 'none';
+
+            // 发送请求到后端
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.error || '数据传输失败');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                // 存储获取的数据
+                chartData = data;
+
+                // 初始化图表
+                initializeChart();
+
+                // 初始化深度滑块
+                initializeDepthSlider(data.min_depth, data.max_depth);
+
+                // 显示煤层信息
+                displayCoalLayers(data.coal_layers, data.total_thickness);
+
+                // 隐藏加载动画，显示结果
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('results-section').style.display = 'block';
+
+                // 设置初始深度范围
+                currentTopDepth = data.min_depth;
+                updateDepthRange('200');
+
+                showToast('🚀 AI分析完成！', 'success');
+            })
+            .catch(error => {
+                document.getElementById('loading').style.display = 'none';
+                showToast('❌ ' + error.message, 'error');
+                console.error('Error:', error);
+            });
+        }
+
+        // 初始化深度滑块
+        function initializeDepthSlider(minDepth, maxDepth) {
+            const sliderElement = document.getElementById('depth-range-slider');
+            const depthRange = maxDepth - minDepth;
+
+            // 清除旧滑块
+            while (sliderElement.firstChild) {
+                sliderElement.removeChild(sliderElement.firstChild);
+            }
+
+            // 创建滑块
+            noUiSlider.create(sliderElement, {
+                start: [minDepth, minDepth + Math.min(200, depthRange)], // 默认显示前200米或全部
+                connect: true,
+                range: {
+                    'min': minDepth,
+                    'max': maxDepth
+                },
+                step: 1,
+                orientation: 'horizontal',
+                behaviour: 'tap-drag',
+                tooltips: [true, true],
+                format: {
+                    to: function (value) {
+                        return value.toFixed(1) + 'm';
+                    },
+                    from: function (value) {
+                        return Number(value.replace('m', ''));
+                    }
+                }
+            });
+
+            // 更新深度标签
+            document.getElementById('min-depth-label').innerHTML = `<i class="bi bi-arrow-up"></i> ${minDepth.toFixed(1)}m`;
+            document.getElementById('max-depth-label').innerHTML = `<i class="bi bi-arrow-down"></i> ${maxDepth.toFixed(1)}m`;
+
+            // 添加更新事件
+            sliderElement.noUiSlider.on('update', function (values, handle) {
+                const start = parseFloat(values[0].replace('m', ''));
+                const end = parseFloat(values[1].replace('m', ''));
+
+                // 更新图表范围
+                if (mainChart) {
+                    mainChart.options.scales.y.min = start;
+                    mainChart.options.scales.y.max = end;
+                    mainChart.update();
+                }
+
+                // 高亮显示在视图范围内的煤层
+                highlightVisibleCoalLayers(start, end);
+            });
+
+            // 更高级的响应式拖动 - 拖动停止时获取更精确的数据
+            sliderElement.noUiSlider.on('change', function (values, handle) {
+                const start = parseFloat(values[0].replace('m', ''));
+                const end = parseFloat(values[1].replace('m', ''));
+
+                // 如果我们有更多数据，可以在这里获取更详细的数据区间
+                if (currentFilename) {
+                    fetchDepthRangeData(currentFilename, start, end);
+                }
+            });
+
+            depthSlider = sliderElement.noUiSlider;
+        }
+
+        // 获取指定深度范围的数据
+        function fetchDepthRangeData(filename, startDepth, endDepth) {
+            fetch(`http://localhost:5000/data/${encodeURIComponent(filename)}?start=${startDepth}&end=${endDepth}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('数据获取失败');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // 更新图表数据
+                    updateChartDataInRange(data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        // 更新指定范围的图表数据
+        function updateChartDataInRange(rangeData) {
+            if (!mainChart || !rangeData) return;
+
+            // 检查是否有深度数据
+            if (!rangeData.depth || rangeData.depth.length === 0) return;
+
+            // 如果显示的是所有指标，使用归一化数据
+            if (currentIndicator === 'all') {
+                const indicators = Object.keys(indicatorColors);
+                indicators.forEach((ind, index) => {
+                    if (rangeData.indicators[ind]) {
+                        const normalizedData = normalizeData(rangeData.indicators[ind]);
+                        const newData = rangeData.depth.map((depth, i) => ({ x: normalizedData[i], y: depth }));
+                        mainChart.data.datasets[index].data = newData;
+                    }
+                });
+            } else {
+                // 如果是单个指标
+                if (rangeData.indicators[currentIndicator]) {
+                    const newData = rangeData.depth.map((depth, i) => ({
+                        x: rangeData.indicators[currentIndicator][i],
+                        y: depth
+                    }));
+                    if (mainChart.data.datasets.length > 0) {
+                        mainChart.data.datasets[0].data = newData;
+                    }
+                }
+            }
+
+            // 更新图表
+            mainChart.update();
+        }
+
+        // 高亮显示在当前视图范围内的煤层
+        function highlightVisibleCoalLayers(startDepth, endDepth) {
+            if (!chartData || !chartData.coal_layers) return;
+
+            // 遍历所有煤层条目
+            const layerItems = document.querySelectorAll('.coal-layer-item');
+            chartData.coal_layers.forEach((layer, index) => {
+                if (index < layerItems.length) {
+                    // 检查煤层是否在视图范围内
+                    const isVisible = (layer.start <= endDepth && layer.end >= startDepth);
+
+                    // 添加或移除高亮样式
+                    if (isVisible) {
+                        layerItems[index].style.background = 'rgba(255, 51, 102, 0.3)';
+                        layerItems[index].style.borderLeftColor = '#ff6699';
+                        layerItems[index].style.fontWeight = 'bold';
+                        layerItems[index].style.transform = 'translateX(10px) scale(1.02)';
+                        layerItems[index].style.boxShadow = '0 10px 30px rgba(255, 51, 102, 0.4)';
+                    } else {
+                        layerItems[index].style.background = 'rgba(255, 51, 102, 0.1)';
+                        layerItems[index].style.borderLeftColor = '#ff3366';
+                        layerItems[index].style.fontWeight = 'normal';
+                        layerItems[index].style.transform = 'translateX(0) scale(1)';
+                        layerItems[index].style.boxShadow = 'none';
+                    }
+                }
+            });
+        }
+
+        // 初始化图表
+        function initializeChart() {
+            const ctx = document.getElementById('main-chart').getContext('2d');
+
+            // 如果图表已存在，销毁它
+            if (mainChart) {
+                mainChart.destroy();
+            }
+
+            // 创建新图表
+            mainChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: []
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#00ffff',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'top',
+                            title: {
+                                display: true,
+                                text: '数值',
+                                color: '#00ffff',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            },
+                            ticks: {
+                                color: '#00ffff'
+                            },
+                            grid: {
+                                color: 'rgba(0, 255, 255, 0.2)'
+                            }
+                        },
+                        y: {
+                            reverse: false,
+                            title: {
+                                display: true,
+                                text: '深度 (m)',
+                                color: '#00ffff',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            },
+                            ticks: {
+                                color: '#00ffff'
+                            },
+                            grid: {
+                                color: 'rgba(0, 255, 255, 0.2)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        zoom: {
+                            pan: {
+                                enabled: true,
+                                mode: 'y',
+                                onPan: function({chart}) {
+                                    // 更新滑块位置与图表同步
+                                    if (depthSlider) {
+                                        const yScale = chart.scales.y;
+                                        depthSlider.set([yScale.min, yScale.max]);
+                                    }
+                                }
+                            },
+                            zoom: {
+                                wheel: {
+                                    enabled: true,
+                                },
+                                pinch: {
+                                    enabled: true
+                                },
+                                mode: 'y',
+                                onZoom: function({chart}) {
+                                    // 更新滑块位置与图表同步
+                                    if (depthSlider) {
+                                        const yScale = chart.scales.y;
+                                        depthSlider.set([yScale.min, yScale.max]);
+                                    }
+                                }
+                            }
+                        },
+                        annotation: {
+                            annotations: {}
+                        }
+                    }
+                }
+            });
+
+            // 默认显示第一个指标
+            updateIndicator(currentIndicator);
+        }
+
+        // 更新指标显示
+        function updateIndicator(indicator) {
+            if (!chartData || !mainChart) return;
+
+            currentIndicator = indicator;
+
+            // 清除当前数据集
+            mainChart.data.datasets = [];
+
+            // 添加煤层标注线
+            addCoalLayerLines();
+
+            if (indicator === 'all') {
+                // 显示所有指标（归一化）
+                const indicators = Object.keys(indicatorColors);
+                indicators.forEach(ind => {
+                    const normalizedData = normalizeData(chartData.indicators[ind]);
+                    mainChart.data.datasets.push({
+                        label: ind,
+                        data: chartData.depth.map((depth, i) => ({ x: normalizedData[i], y: depth })),
+                        borderColor: indicatorColors[ind],
+                        backgroundColor: 'transparent',
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        tension: 0.1
+                    });
+                });
+
+                // 更新标题和X轴
+                document.getElementById('chart-title').innerHTML = '<i class="bi bi-diagram-3"></i> 全参数智能分析对比';
+                mainChart.options.scales.x.title.text = '归一化值 (0-1)';
+                mainChart.options.scales.x.min = -0.05;
+                mainChart.options.scales.x.max = 1.05;
+            } else {
+                // 显示单个指标
+                const data = chartData.indicators[indicator];
+                mainChart.data.datasets.push({
+                    label: indicator,
+                    data: chartData.depth.map((depth, i) => ({ x: data[i], y: depth })),
+                    borderColor: indicatorColors[indicator],
+                    backgroundColor: 'transparent',
+                    borderWidth: 4,
+                    pointRadius: 0,
+                    tension: 0.1
+                });
+
+                // 更新标题和X轴
+                const iconMap = {
+                    '深侧向': 'bi-activity',
+                    '浅侧向': 'bi-activity',
+                    '声波时差': 'bi-soundwave',
+                    '自然伽玛': 'bi-radioactive',
+                    '密度': 'bi-water',
+                    '双侧向电阻率': 'bi-lightning-charge'
+                };
+                const icon = iconMap[indicator] || 'bi-graph-up-arrow';
+                document.getElementById('chart-title').innerHTML = `<i class="${icon}"></i> ${indicator}智能分析`;
+                mainChart.options.scales.x.title.text = `${indicator}数值`;
+                mainChart.options.scales.x.min = 0;
+                mainChart.options.scales.x.max = Math.max(...data) * 1.1;
+            }
+
+            // 更新图表
+            mainChart.update();
+        }
+
+        // 归一化数据
+        function normalizeData(data) {
+            const min = Math.min(...data);
+            const max = Math.max(...data);
+            return data.map(val => (val - min) / (max - min));
+        }
+
+        // 添加煤层标注线（将原来的区域改为红线标注）
+        function addCoalLayerLines() {
+            if (!chartData || !mainChart) return;
+
+            // 清除旧的标注
+            mainChart.options.plugins.annotation = {
+                annotations: {}
+            };
+
+            // 为每个煤层添加顶部和底部红线标注
+            chartData.coal_layers.forEach((layer, index) => {
+                // 煤层顶部红线
+                const topLineId = `coal-top-${index}`;
+                mainChart.options.plugins.annotation.annotations[topLineId] = {
+                    type: 'line',
+                    xScaleID: 'x',
+                    yScaleID: 'y',
+                    xMin: 0,
+                    xMax: 1,
+                    yMin: layer.start,
+                    yMax: layer.start,
+                    borderColor: '#ff3366',
+                    borderWidth: 3,
+                    label: {
+                        content: `${index + 1}`,
+                        display: true,
+                        position: 'start',
+                        backgroundColor: '#ff3366',
+                        color: 'white',
+                        font: {
+                            weight: 'bold',
+                            size: 14
+                        }
+                    }
+                };
+
+                // 煤层底部红线
+                const bottomLineId = `coal-bottom-${index}`;
+                mainChart.options.plugins.annotation.annotations[bottomLineId] = {
+                    type: 'line',
+                    xScaleID: 'x',
+                    yScaleID: 'y',
+                    xMin: 0,
+                    xMax: 1,
+                    yMin: layer.end,
+                    yMax: layer.end,
+                    borderColor: '#ff3366',
+                    borderWidth: 3
+                };
+
+                // 添加连接顶部和底部的垂直线（左侧）
+                const leftLineId = `coal-left-${index}`;
+                mainChart.options.plugins.annotation.annotations[leftLineId] = {
+                    type: 'line',
+                    xScaleID: 'x',
+                    yScaleID: 'y',
+                    xMin: 0,
+                    xMax: 0,
+                    yMin: layer.start,
+                    yMax: layer.end,
+                    borderColor: '#ff3366',
+                    borderWidth: 2,
+                    borderDash: [8, 4]
+                };
+            });
+        }
+
+        // 更新深度范围
+        function updateDepthRange(value) {
+            if (!chartData || !mainChart || !depthSlider) return;
+
+            let windowSize;
+            if (value === 'all') {
+                windowSize = chartData.max_depth - chartData.min_depth;
+                currentTopDepth = chartData.min_depth;
+
+                // 更新滑块范围到全部
+                depthSlider.set([chartData.min_depth, chartData.max_depth]);
+            } else {
+                windowSize = parseFloat(value);
+                // 确保当前深度范围有效
+                if (currentTopDepth + windowSize > chartData.max_depth) {
+                    currentTopDepth = Math.max(chartData.min_depth, chartData.max_depth - windowSize);
+                }
+
+                // 更新滑块范围
+                depthSlider.set([currentTopDepth, currentTopDepth + windowSize]);
+            }
+
+            currentWindowSize = windowSize;
+
+            // 重新添加煤层标注
+            addCoalLayerLines();
+
+            // 高亮显示在视图范围内的煤层
+            highlightVisibleCoalLayers(currentTopDepth, currentTopDepth + windowSize);
+        }
+
+               // 显示煤层信息
+        function displayCoalLayers(layers, totalThickness) {
+            const container = document.getElementById('coal-layers-list');
+            container.innerHTML = '';
+
+            layers.forEach((layer, index) => {
+                const item = document.createElement('div');
+                item.className = 'coal-layer-item';
+                item.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                        <i class="bi bi-gem" style="color: #ff3366; font-size: 1.2rem;"></i>
+                        <strong style="color: #00ffff; font-family: 'Orbitron', monospace;">${index + 1}号煤层</strong>
+                    </div>
+                    <div style="font-size: 0.95rem; color: #ffffff; line-height: 1.6;">
+                        深度范围: <span style="color: #00ffff; font-weight: bold;">${layer.start.toFixed(2)}m - ${layer.end.toFixed(2)}m</span><br>
+                        煤层厚度: <strong style="color: #ff3366; font-size: 1.1rem;">${layer.thickness.toFixed(2)}m</strong>
+                    </div>
+                `;
+
+                // 添加点击事件 - 点击煤层导航到该位置
+                item.addEventListener('click', function() {
+                    if (depthSlider) {
+                        // 计算合适的视图范围
+                        const padding = 20; // 额外显示煤层上下20米
+                        const rangeStart = Math.max(chartData.min_depth, layer.start - padding);
+                        const rangeEnd = Math.min(chartData.max_depth, layer.end + padding);
+
+                        // 设置滑块和图表范围
+                        depthSlider.set([rangeStart, rangeEnd]);
+
+                        // 添加点击效果
+                        item.style.background = 'rgba(0, 255, 255, 0.2)';
+                        setTimeout(() => {
+                            item.style.background = 'rgba(255, 51, 102, 0.1)';
+                        }, 300);
+                    }
+                });
+
+                container.appendChild(item);
+            });
+
+            // 显示总厚度
+            document.getElementById('total-thickness').innerHTML = `
+                <i class="bi bi-calculator" style="color: #00ffff;"></i>
+                总厚度: <span style="color: #ff3366; font-weight: bold;">${totalThickness.toFixed(2)}m</span>
+            `;
+        }
+
+        // 显示科技感提示消息
+        function showToast(message, type) {
+            const bgColor = type === 'error' ?
+                "linear-gradient(135deg, #ff3366 0%, #ff6699 100%)" :
+                "linear-gradient(135deg, #00ff88 0%, #00cc66 100%)";
+
+            Toastify({
+                text: message,
+                duration: 4000,
+                gravity: "top",
+                position: "center",
+                backgroundColor: bgColor,
+                className: "toast-tech",
+                style: {
+                    borderRadius: "15px",
+                    fontFamily: "'Orbitron', monospace",
+                    fontWeight: "bold",
+                    textTransform: "uppercase",
+                    letterSpacing: "1px",
+                    boxShadow: "0 10px 30px rgba(0, 255, 255, 0.3)",
+                    border: type === 'error' ? "2px solid #ff6699" : "2px solid #00cc66"
+                }
+            }).showToast();
+        }
+
+        // 初始化所有事件监听器
+        function initializeEventListeners() {
+            // 绑定文件上传事件
+            document.getElementById('upload-form').addEventListener('submit', function(event) {
+                event.preventDefault();
+                uploadFile();
+            });
+
+            // 绑定指标按钮点击事件
+            document.getElementById('indicator-buttons').addEventListener('click', function(event) {
+                if (event.target.classList.contains('indicator-btn') || event.target.closest('.indicator-btn')) {
+                    const btn = event.target.classList.contains('indicator-btn') ? event.target : event.target.closest('.indicator-btn');
+                    const indicator = btn.getAttribute('data-indicator');
+                    updateIndicator(indicator);
+
+                    // 更新按钮状态
+                    document.querySelectorAll('.indicator-btn').forEach(button => {
+                        button.classList.remove('btn-primary', 'btn-success');
+                        button.classList.add('btn-outline-primary');
+                        if (indicator === 'all' && button.getAttribute('data-indicator') === 'all') {
+                            button.classList.remove('btn-outline-success', 'btn-outline-primary');
+                            button.classList.add('btn-success');
+                        } else if (indicator !== 'all' && button.getAttribute('data-indicator') === 'all') {
+                            button.classList.remove('btn-success');
+                            button.classList.add('btn-outline-success');
+                        }
+                    });
+
+                    if (indicator !== 'all') {
+                        btn.classList.remove('btn-outline-primary');
+                        btn.classList.add('btn-primary');
+                    }
+                }
+            });
+
+            // 绑定深度范围下拉菜单
+            document.getElementById('depth-range-menu').addEventListener('click', function(event) {
+                if (event.target.tagName === 'A' || event.target.closest('a')) {
+                    event.preventDefault();
+                    const link = event.target.tagName === 'A' ? event.target : event.target.closest('a');
+                    const value = link.getAttribute('data-value');
+                    updateDepthRange(value);
+
+                    // 更新下拉按钮文本
+                    const text = value === 'all' ? '全范围扫描' : `${value}米精度`;
+                    document.querySelector('.depth-select').innerHTML = `<i class="bi bi-zoom-in"></i> 分析范围: ${text}`;
+                }
+            });
+        }
+
+        // 页面初始化完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 创建科技粒子效果
+            createTechParticles();
+
+            // 初始化事件监听器
+            initializeEventListeners();
+
+            // 添加页面加载完成的科技感效果
+            setTimeout(() => {
+                document.body.style.opacity = '1';
+            }, 100);
+        });
+
+        // 添加页面卸载时的清理
+        window.addEventListener('beforeunload', function() {
+            if (mainChart) {
+                mainChart.destroy();
+            }
+        });
+    </script>
+
+    <style>
+        /* 补充的科技感样式 */
+        .toast-tech {
+            animation: slideInFromTop 0.5s ease-out;
+        }
+
+        @keyframes slideInFromTop {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* 页面初始加载效果 */
+        body {
+            opacity: 0;
+            transition: opacity 0.5s ease-in;
+        }
+
+        /* 增强的鼠标悬停效果 */
+        .coal-layer-item:hover {
+            animation: glow-pulse 1s infinite alternate;
+        }
+
+        @keyframes glow-pulse {
+            from {
+                box-shadow: 0 10px 30px rgba(255, 51, 102, 0.3);
+            }
+            to {
+                box-shadow: 0 15px 40px rgba(255, 51, 102, 0.5);
+            }
+        }
+
+        /* 导航栏动态效果增强 */
+        .navbar-brand:hover {
+            animation: brand-glow 0.5s ease-in-out;
+        }
+
+        @keyframes brand-glow {
+            0% { text-shadow: 0 0 20px #00ffff; }
+            50% { text-shadow: 0 0 40px #00ffff, 0 0 60px #0080ff; }
+            100% { text-shadow: 0 0 20px #00ffff; }
+        }
+
+        /* 按钮点击效果 */
+        .btn:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        /* 增强的滚动条样式 */
+        ::-webkit-scrollbar-thumb:active {
+            background: linear-gradient(135deg, #00ffff 0%, #ff3366 100%);
+            transform: scale(1.1);
+        }
+
+        /* 文件输入框增强样式 */
+        .form-control::file-selector-button {
+            background: var(--accent-gradient);
+            border: none;
+            border-radius: 10px;
+            color: #000000;
+            font-weight: bold;
+            padding: 0.5rem 1rem;
+            margin-right: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-control::file-selector-button:hover {
+            background: var(--primary-gradient);
+            color: #ffffff;
+            transform: scale(1.05);
+        }
+
+        /* 图表容器增强效果 */
+        .chart-container:hover {
+            box-shadow: inset 0 4px 20px rgba(0, 255, 255, 0.1);
+        }
+
+        /* 深度标签增强样式 */
+        .depth-labels span {
+            background: rgba(0, 255, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            transition: var(--transition);
+        }
+
+        .depth-labels span:hover {
+            background: rgba(0, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+    </style>
+</body>
+</html>

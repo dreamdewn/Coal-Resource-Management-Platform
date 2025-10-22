@@ -1,1 +1,0 @@
-# Coal-Resource-Management-Platform
